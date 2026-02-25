@@ -26,16 +26,15 @@ v3=0.2
 def compute_mean(n=100000):
     S = 0.0
 
-    for i in range(n):
-        # now we need random values for the three factors
-        X1 = np.exp(u1+v1*randn())
-        X2 = np.exp(u2+v2*randn())
-        X3 = np.exp(u3+v3*randn())
-        # Formula: S = (X1 + X2 + X3)^p
-        simulated_price = (X1+X2+X3)**p
-        S+=simulated_price
-    
-    return S/n
+    # now we need random values for the three factors
+    X1 = np.exp(u1+v1*randn(n))
+    X2 = np.exp(u2+v2*randn(n))
+    X3 = np.exp(u3+v3*randn(n))
+    # now we are getting three arrays of random numbers adjusted using average and volatility
+    # Formula: S = (X1 + X2 + X3)^p
+    S = (X1+X2+X3)**p # matrices addition and every element is raised to p
+
+    return S.mean()
 
 
 # timing
@@ -45,3 +44,16 @@ end_time = time.time()
 
 print(expected_value)
 print(end_time-start_time)
+
+
+# for loop result
+# 2.2294349067883807
+# 0.09608006477355957
+# 2.229575767062145
+# 0.06717205047607422
+
+# vectorization result 
+# 2.229568070813988
+# 0.004385948181152344
+# 2.229989240284386
+# 0.004126071929931641
