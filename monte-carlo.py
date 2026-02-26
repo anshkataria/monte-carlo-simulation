@@ -18,20 +18,13 @@ b = 0.95 # discount
 strike_price = 1.0
 u = 1.0
 v = 0.1
-def pricing_european_option(num_simulations=100000):
-    total_payoff = 0.0
-    for i in range(num_simulations):
         # taking a random value from normal distribution, then adjusting it using drift and volatality and then converting to lognormal to get rid of negative values
-        final_stock_price = np.exp(u+v*randn())
+def pricing_european_option(num_simulations=100000):
 
-        if(final_stock_price>strike_price):
-            profit = final_stock_price-strike_price
-        else:
-            profit=0.0
+    final_stock_price = np.exp(u+v*np.random.randn(num_simulations))
+    payoff = np.maximum(final_stock_price-strike_price,0) 
 
-        total_payoff +=profit
-
-    average_payoff = total_payoff/num_simulations
+    average_payoff = np.mean(payoff)
     option_price = (b**n)*(average_payoff)
 
     return option_price
