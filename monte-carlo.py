@@ -1,6 +1,7 @@
 import numpy as np
 from numpy.random import randn
 import time
+import yfinance as yf
 
 # pricing an european option
 # expiry date, strike price, payoff
@@ -11,21 +12,45 @@ import time
 # average price of option on expiry date = mean{max(price-strike,0)}
 
 
-# let us define the parameters now
 
-n = 10 # expiry period
-b = 0.95 # discount
-strike_price = 1.0
-u = 1.0
-v = 0.1
-        # taking a random value from normal distribution, then adjusting it using drift and volatality and then converting to lognormal to get rid of negative values
+def market_data(ticker_symbol):
+    print(f"Downloading 1 year of data for {ticker_symbol}....")
+    stock_data = yf.download(ticker_symbol,period="1y")
+    prices = stock_data['Close'].squeeze()
+
+    log_returns = np.log(prices/prices.shift(1)).dropna()
+
+    daily_vol = log_returns.std()
+    sigma = daily_vol * np.sqrt(252)
+
+    daily_mu = log_returns.mean()
+    mu = daily_mu *252 
+    
+    S0 = float(prices.iloc[-1])
+    print("-" * 30)
+    print(f"Current Price (S0): ${S0}")
+    print(f"Historical Annual Drift (μ): {mu}")
+    print(f"Historical Annual Volatility (σ): {sigma}")
+    print("-" * 30)
+    return S0, mu, sigma
+# real parameters now
+S0, mu, sigma = market_data("AAPL")
+strike_price = S0+10.0
+u = mu
+v = sigma
+days_to_expiry=30
+    # taking a random value from normal distribution, then adjusting it using drift and volatality and then converting to lognormal to get rid of negative values
 def pricing_european_option(num_simulations=100000):
+    T = days_to_expiry/252
+    b=0.95
 
-    final_stock_price = np.exp(u+v*np.random.randn(num_simulations))
+    drift_adjustment = (mu-sigma**2/2)*T
+    shock = sigma*np.sqrt(T)*randn(num_simulations)
+    final_stock_price = S0*np.exp(drift_adjustment+shock)
     payoff = np.maximum(final_stock_price-strike_price,0) 
 
     average_payoff = np.mean(payoff)
-    option_price = (b**n)*(average_payoff)
+    option_price = (b**T)*(average_payoff)
 
     return option_price
 
